@@ -114,7 +114,8 @@ fun drawRoller(
     destX: Float,
     destY: Float,
     rollerStarted: Boolean,
-    rollerStopped: MutableState<Boolean>
+    rollerStopped: MutableState<Boolean>,
+    gameState: MutableState<State>
 ) {
 
     var previousX = 0f
@@ -140,6 +141,10 @@ fun drawRoller(
                 }
                 translationX = previousX
                 translationY = previousY
+                if(previousX == destX && previousY == destY){
+                    // You Win
+                    gameState.value = State.Win
+                }
             }
             .background(
                 color = Color.White,

@@ -20,7 +20,7 @@ import com.cross.chakravyuh.ui.theme.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-const val TAG = "Balls Revolving"
+private const val TAG = "Balls Revolving"
 val srcDestRingStroke = 5.dp
 val srcDestRingSize = 35.dp
 val trackWidth = 10.dp
@@ -43,7 +43,8 @@ lateinit var intersectTimestampList: ArrayList<Long>
 @Composable
 fun BallsRevolving(
     ringsCount: Int,
-    level: Int
+    level: Int,
+    gameState: MutableState<State>
 ) {
     xIntersectList = ArrayList(ringsCount)
     yIntersectList = ArrayList(ringsCount)
@@ -60,21 +61,23 @@ fun BallsRevolving(
     val screenCenterX = screenWidthPx / 2
     val screenCenterY = screenHeightPx / 2
 
-    // Todo set sourceX, sourceY from function arg
+    // Todo set sourceX, sourceY from level json
     val sourceX = screenCenterX
     val sourceY = 110
-    // Todo set destX, destY from function arg
+    // Todo set destX, destY from level json
     val destX = screenCenterX
     val destY = screenCenterY
 
     val ringSizeInPx = with(density) { srcDestRingSize.toPx() }
     val ballSizeInPx = with(density) { ballSize.toPx() }
+    // Calculating roller source and destination
     val rollerSourceX = (sourceX - (ringSizeInPx / 2)) + with(density) { srcDestRingStroke.toPx() }
     val rollerSourceY = (sourceY - (ringSizeInPx / 2)) + with(density) { srcDestRingStroke.toPx() }
     val rollerDestX =
         (destX - (ringSizeInPx / 2)) + with(density) { srcDestRingStroke.toPx() }
     val rollerDestY =
         (destY - (ringSizeInPx / 2)) + with(density) { srcDestRingStroke.toPx() }
+
     var rollerStarted by remember { mutableStateOf(false) }
     var rollerStopped = remember { mutableStateOf(false) }
 
@@ -115,41 +118,21 @@ fun BallsRevolving(
             rollerDestX,
             rollerDestY,
             rollerStarted,
-            rollerStopped
+            rollerStopped,
+            gameState
         )
 
         Button(modifier = Modifier
             .align(Alignment.BottomCenter),
             onClick = {
-//                Log.d(TAG, "Clicked : ")
-                fireTheRoller(ringsCount, angles, rollerStopped)
-                rollerStarted = !rollerStarted
+                // To calculate if roller touches the revolving balls, if true, stop roller and balls
+                fireTheRoller(ringsCount, angles, rollerStopped, gameState)
+                // To start the roller from source to dest
+                rollerStarted = true
             })
         {
             Text(text = "Start")
         }
-
-        /*Button(modifier = Modifier
-            .align(Alignment.BottomEnd),
-            onClick = {
-                Log.d(TAG, "CurrentTime : " + System.currentTimeMillis())
-                var count = 0
-                while (count != ringsCount) {
-                    Log.d(TAG, "count : " + count)
-                    if (xIntersectList?.isNotEmpty())
-                        Log.d(TAG, "xPoint : " + xIntersectList[count])
-                    if (yIntersectList?.isNotEmpty())
-                        Log.d(TAG, "yPoint : " + yIntersectList[count])
-                    if (timeRequiredList?.isNotEmpty())
-                        Log.d(TAG, "time required : " + timeRequiredList[count])
-                    if (intersectTimestampList?.isNotEmpty())
-                        Log.d(TAG, "intersect timestamp : " + intersectTimestampList[count])
-                    count++
-                }
-            })
-        {
-            Text(text = "Print Lists")
-        }*/
     }
 
     // Get co-ordinates, where roller path and tracks intersect
@@ -179,7 +162,8 @@ fun BallsRevolving(
 fun fireTheRoller(
     ringsCount: Int,
     angles: List<Animatable<Float, AnimationVector1D>>,
-    rollerStopped: MutableState<Boolean>
+    rollerStopped: MutableState<Boolean>,
+    gameState: MutableState<State>
 ) {
     // When Roller is triggered calculate the live timestamp when it will hit resp tracks
     // Then finally verify if ball is in or around(~120 ms) that timestamp
@@ -193,7 +177,7 @@ fun fireTheRoller(
         if (timeRequiredToTouchTrack in intersectTime - 120..intersectTime + 120) {
             Log.d(TAG, "Boom Boom : count : $count")
             Handler(Looper.getMainLooper()).postDelayed({
-                stopAllAnimation(angles, rollerStopped)
+                stopAllAnimations(angles, rollerStopped, gameState)
             }, timeRequiredList[count])
             break
         }
@@ -202,14 +186,16 @@ fun fireTheRoller(
 
 }
 /** Stop all balls and roller as there is a collision*/
-private fun stopAllAnimation(
+private fun stopAllAnimations(
     angles: List<Animatable<Float, AnimationVector1D>>,
-    rollerStopped: MutableState<Boolean>
+    rollerStopped: MutableState<Boolean>,
+    gameState: MutableState<State>
 ) {
     GlobalScope.launch() {
         for (angle in angles)
             angle.stop()
         rollerStopped.value = true
+        gameState.value = State.Loss
     }
 }
 
