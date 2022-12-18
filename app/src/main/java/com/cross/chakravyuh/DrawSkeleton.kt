@@ -115,7 +115,8 @@ fun drawRoller(
     destY: Float,
     rollerStarted: Boolean,
     rollerStopped: MutableState<Boolean>,
-    gameState: MutableState<State>
+    gameState: MutableState<State>,
+    angles: List<Animatable<Float, AnimationVector1D>>
 ) {
 
     var previousX = 0f
@@ -142,8 +143,8 @@ fun drawRoller(
                 translationX = previousX
                 translationY = previousY
                 if(previousX == destX && previousY == destY){
-                    // You Win
-                    gameState.value = State.Win
+                    // You Win, as roller has reached destination without collision
+                    stopAllAnimations(angles, rollerStopped, gameState, State.Win)
                 }
             }
             .background(

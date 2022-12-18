@@ -119,7 +119,8 @@ fun BallsRevolving(
             rollerDestY,
             rollerStarted,
             rollerStopped,
-            gameState
+            gameState,
+            angles
         )
 
         Button(modifier = Modifier
@@ -177,7 +178,8 @@ fun fireTheRoller(
         if (timeRequiredToTouchTrack in intersectTime - 120..intersectTime + 120) {
             Log.d(TAG, "Boom Boom : count : $count")
             Handler(Looper.getMainLooper()).postDelayed({
-                stopAllAnimations(angles, rollerStopped, gameState)
+                // Stop all balls and roller as there is a collision
+                stopAllAnimations(angles, rollerStopped, gameState, State.Loss)
             }, timeRequiredList[count])
             break
         }
@@ -186,16 +188,17 @@ fun fireTheRoller(
 
 }
 /** Stop all balls and roller as there is a collision*/
-private fun stopAllAnimations(
+fun stopAllAnimations(
     angles: List<Animatable<Float, AnimationVector1D>>,
     rollerStopped: MutableState<Boolean>,
-    gameState: MutableState<State>
+    gameState: MutableState<State>,
+    state : State
 ) {
     GlobalScope.launch() {
         for (angle in angles)
             angle.stop()
         rollerStopped.value = true
-        gameState.value = State.Loss
+        gameState.value = state
     }
 }
 
