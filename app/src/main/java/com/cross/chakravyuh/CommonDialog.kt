@@ -1,5 +1,6 @@
 package com.cross.chakravyuh
 
+import android.view.Gravity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,12 +14,14 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindowProvider
 import com.cross.chakravyuh.ui.theme.Purple200
 import com.cross.chakravyuh.ui.theme.Purple500
 
@@ -30,6 +33,9 @@ fun createDialog(
     exitFunction: () -> Unit
 ) {
     Dialog(onDismissRequest = { openDialogCustom.value = false }) {
+        val dialogWindowProvider = LocalView.current.parent as DialogWindowProvider
+        dialogWindowProvider.window.setGravity(Gravity.BOTTOM)
+
         Card(
             //shape = MaterialTheme.shapes.medium,
             shape = RoundedCornerShape(10.dp),
@@ -83,7 +89,7 @@ fun createDialog(
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
 
-                    TextButton(onClick = {
+                    /*TextButton(onClick = {
                         exitFunction()
                         openDialogCustom.value = false
                     }) {
@@ -95,7 +101,7 @@ fun createDialog(
                             modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(10.dp))*/
 
                     TextButton(onClick = {
                         actionFunction()

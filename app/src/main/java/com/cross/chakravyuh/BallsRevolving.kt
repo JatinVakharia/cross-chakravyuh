@@ -123,6 +123,7 @@ fun BallsRevolving(
             angles
         )
 
+
         Button(modifier = Modifier
             .align(Alignment.BottomCenter),
             onClick = {
@@ -134,6 +135,13 @@ fun BallsRevolving(
         {
             Text(text = "Start")
         }
+
+        /*// Enable start button after one revolution of ball(ball which has longest revolution time)
+        var buttonEnabled by remember { mutableStateOf(true) }
+        enabled = buttonEnabled,
+        Handler(Looper.getMainLooper()).postDelayed({
+            buttonEnabled = true
+        }, (animationDuration.maxOrNull() ?: 0).toLong())*/
     }
 
     // Get co-ordinates, where roller path and tracks intersect
@@ -187,12 +195,13 @@ fun fireTheRoller(
     }
 
 }
+
 /** Stop all balls and roller as there is a collision*/
 fun stopAllAnimations(
     angles: List<Animatable<Float, AnimationVector1D>>,
     rollerStopped: MutableState<Boolean>,
     gameState: MutableState<State>,
-    state : State
+    state: State
 ) {
     GlobalScope.launch() {
         for (angle in angles)
@@ -202,13 +211,16 @@ fun stopAllAnimations(
     }
 }
 
+/**
+ * It generates list of timestamps, when resp ball will reach desired angle in next cycle
+ * */
 fun generateIntersectTimestampList(index: Int, angle: Float, animationDuration: Int) {
     // Identify time, when ball will reach intersect points of track
     // If intersect points are updated then maintain a list of timestamp
     // (where timestamp is the time, when ball will reach the intersect point in next cycle)
     if (xIntersectList.isNotEmpty()) {
         // todo : angle 180f should not be hard coded, need to fetch angle from the calculated angle list
-        if (angle in 180f - 2f..180f + 2f)
+        if (angle in 180f - 1f..180f + 1f)
             if (intersectTimestampList.size > index)
                 intersectTimestampList[index] = System.currentTimeMillis() + animationDuration
             else
@@ -216,6 +228,9 @@ fun generateIntersectTimestampList(index: Int, angle: Float, animationDuration: 
     }
 }
 
+/**
+ * It calculates the time required by roller to touch each track
+ * */
 fun calculateTimeRequiredByRollerToTouchEachTrack(
     ringsCount: Int,
     rollerSourceX: Float,
@@ -224,6 +239,7 @@ fun calculateTimeRequiredByRollerToTouchEachTrack(
 ) {
     var count = 0
     while (count != ringsCount) {
+        // gets the distance between roller start point and point of intersection with track
         val distance = getDistance(
             rollerSourceX, xIntersectList[count],
             rollerSourceY, yIntersectList[count]
@@ -234,6 +250,9 @@ fun calculateTimeRequiredByRollerToTouchEachTrack(
     }
 }
 
+/**
+ * It calculates the intersection points of roller and tracks
+ * */
 @Composable
 fun calculateIntersectionPointsOfRollerAndTracks(
     ringsCount: Int,
