@@ -30,6 +30,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun startGame(level: Int) {
+        Log.d(TAG, "Time1 : "+ System.currentTimeMillis())
         // Handles Win and Loss of game
         var gameState = remember { mutableStateOf(State.InProgress) }
         // Handles next level or try again of game
@@ -40,6 +41,7 @@ class MainActivity : ComponentActivity() {
             Surface(
                 modifier = Modifier.fillMaxSize()
             ) {
+                Log.d(TAG, "Time2 : "+ System.currentTimeMillis())
                 BallsRevolving(4, level, gameState)
             }
         }
@@ -90,10 +92,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun moveToNextLevel(gameBehaviour: MutableState<Behaviour>) {
+        clearData()
         gameBehaviour.value = Behaviour.NextLevel
     }
 
     private fun tryAgainSameLevel(gameBehaviour: MutableState<Behaviour>) {
+        clearData()
         gameBehaviour.value = Behaviour.Retry
     }
 }

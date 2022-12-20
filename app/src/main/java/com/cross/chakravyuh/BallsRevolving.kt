@@ -40,16 +40,31 @@ lateinit var timeRequiredList: ArrayList<Long>
 /** intersectTimestampList stores time in timestamp, which is the exact time in future when roller will touch every track */
 lateinit var intersectTimestampList: ArrayList<Long>
 
+fun initiateData(ringsCount: Int){
+    // a condition to protect from reinitialization of variable
+    if(!::xIntersectList.isInitialized) {
+        xIntersectList = ArrayList(ringsCount)
+        yIntersectList = ArrayList(ringsCount)
+        timeRequiredList = ArrayList(ringsCount)
+        intersectTimestampList = ArrayList(ringsCount)
+    }
+}
+
+fun clearData(){
+    xIntersectList.clear()
+    yIntersectList.clear()
+    timeRequiredList.clear()
+    intersectTimestampList.clear()
+}
+
 @Composable
 fun BallsRevolving(
     ringsCount: Int,
     level: Int,
     gameState: MutableState<State>
 ) {
-    xIntersectList = ArrayList(ringsCount)
-    yIntersectList = ArrayList(ringsCount)
-    timeRequiredList = ArrayList(ringsCount)
-    intersectTimestampList = ArrayList(ringsCount)
+    // initiate all data
+    initiateData(ringsCount)
 
     // mobile device density, used to convert dp to pixel
     val density = LocalDensity.current
@@ -123,9 +138,10 @@ fun BallsRevolving(
             angles
         )
 
-
+        var buttonEnabled by remember { mutableStateOf(false) }
         Button(modifier = Modifier
             .align(Alignment.BottomCenter),
+            enabled = buttonEnabled,
             onClick = {
                 // To calculate if roller touches the revolving balls, if true, stop roller and balls
                 fireTheRoller(ringsCount, angles, rollerStopped, gameState)
@@ -136,12 +152,10 @@ fun BallsRevolving(
             Text(text = "Start")
         }
 
-        /*// Enable start button after one revolution of ball(ball which has longest revolution time)
-        var buttonEnabled by remember { mutableStateOf(true) }
-        enabled = buttonEnabled,
+        // Enable start button after one revolution of ball (ball which has longest revolution time)
         Handler(Looper.getMainLooper()).postDelayed({
             buttonEnabled = true
-        }, (animationDuration.maxOrNull() ?: 0).toLong())*/
+        }, (animationDuration.maxOrNull() ?: 0).toLong())
     }
 
     // Get co-ordinates, where roller path and tracks intersect

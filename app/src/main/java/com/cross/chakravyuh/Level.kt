@@ -10,5 +10,4 @@ data class Level(
     val sourceRingY: Int,
     val destRingX: Int,
     val destRingY: Int,
-
     )
