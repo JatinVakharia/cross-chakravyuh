@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.cross.chakravyuh.ui.theme.animationDuration
 import com.cross.chakravyuh.ui.theme.colorArray
 import com.cross.chakravyuh.ui.theme.revolvingBallsRadiusArray
 import com.cross.chakravyuh.ui.theme.trackDiameter
@@ -42,7 +41,8 @@ fun drawRevolvingBalls(
     angle: Animatable<Float, AnimationVector1D>,
     screenCenterX: Int,
     screenCenterY: Int,
-    ballSizeInPx: Float
+    ballSizeInPx: Float,
+    level: Level
 ) {
     val radius = with(LocalDensity.current) { revolvingBallsRadiusArray[index].dp.toPx() }
     Box(modifier = Modifier
@@ -56,7 +56,7 @@ fun drawRevolvingBalls(
                 angle.value,
                 radius
             ).toFloat() - (ballSizeInPx / 2)
-            generateIntersectTimestampList(index, angle.value, animationDuration[index])
+            generateIntersectTimestampList(index, angle.value, level.ballAnimationDuration[index])
         }
         .background(
             color = colorArray[index],

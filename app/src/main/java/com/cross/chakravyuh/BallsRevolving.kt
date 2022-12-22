@@ -40,17 +40,17 @@ lateinit var timeRequiredList: ArrayList<Long>
 /** intersectTimestampList stores time in timestamp, which is the exact time in future when roller will touch every track */
 lateinit var intersectTimestampList: ArrayList<Long>
 
-fun initiateData(ringsCount: Int){
+fun initiateData(trackCount: Int) {
     // a condition to protect from reinitialization of variable
-    if(!::xIntersectList.isInitialized) {
-        xIntersectList = ArrayList(ringsCount)
-        yIntersectList = ArrayList(ringsCount)
-        timeRequiredList = ArrayList(ringsCount)
-        intersectTimestampList = ArrayList(ringsCount)
+    if (!::xIntersectList.isInitialized) {
+        xIntersectList = ArrayList(trackCount)
+        yIntersectList = ArrayList(trackCount)
+        timeRequiredList = ArrayList(trackCount)
+        intersectTimestampList = ArrayList(trackCount)
     }
 }
 
-fun clearData(){
+fun clearData() {
     xIntersectList.clear()
     yIntersectList.clear()
     timeRequiredList.clear()
@@ -59,12 +59,12 @@ fun clearData(){
 
 @Composable
 fun BallsRevolving(
-    ringsCount: Int,
-    level: Int,
+    level: Level,
     gameState: MutableState<State>
 ) {
+    Log.d(TAG, "Level : ${level.level}")
     // initiate all data
-    initiateData(ringsCount)
+    initiateData(level.trackCount)
 
     // mobile device density, used to convert dp to pixel
     val density = LocalDensity.current
@@ -97,13 +97,13 @@ fun BallsRevolving(
     var rollerStopped = remember { mutableStateOf(false) }
 
     // Get balls animation values
-    val angles = getAnimationValue(ringsCount)
+    val angles = getAnimationValue(level)
     angles.forEachIndexed { index, angle ->
         LaunchedEffect(key1 = angle) {
             angle.animateTo(
-                targetValue = 360f,
+                targetValue = level.ballTargetAngle[index],
                 animationSpec = infiniteRepeatable(
-                    animation = tween(animationDuration[index], 0, LinearEasing),
+                    animation = tween(level.ballAnimationDuration[index], 0, LinearEasing),
                     repeatMode = RepeatMode.Restart
                 )
             )
@@ -117,7 +117,7 @@ fun BallsRevolving(
             // Tracks
             drawTracks(index = index, screenCenterX, screenCenterY)
             // Revolving balls
-            drawRevolvingBalls(index, angle, screenCenterX, screenCenterY, ballSizeInPx)
+            drawRevolvingBalls(index, angle, screenCenterX, screenCenterY, ballSizeInPx, level)
         }
 
         // Draw destination ring to desired co-ordinates
@@ -144,7 +144,7 @@ fun BallsRevolving(
             enabled = buttonEnabled,
             onClick = {
                 // To calculate if roller touches the revolving balls, if true, stop roller and balls
-                fireTheRoller(ringsCount, angles, rollerStopped, gameState)
+                fireTheRoller(level.trackCount, angles, rollerStopped, gameState)
                 // To start the roller from source to dest
                 rollerStarted = true
             })
@@ -155,13 +155,13 @@ fun BallsRevolving(
         // Enable start button after one revolution of ball (ball which has longest revolution time)
         Handler(Looper.getMainLooper()).postDelayed({
             buttonEnabled = true
-        }, (animationDuration.maxOrNull() ?: 0).toLong())
+        }, (level.ballAnimationDuration.maxOrNull() ?: 0).toLong())
     }
 
     // Get co-ordinates, where roller path and tracks intersect
     // todo : angle should not be hard coded, need to calculate angle and save it in a list
     calculateIntersectionPointsOfRollerAndTracks(
-        ringsCount,
+        level.trackCount,
         180f,
         revolvingBallsRadiusArray,
         screenCenterX,
@@ -175,7 +175,7 @@ fun BallsRevolving(
 
     // calculate time taken by roller to touch each track
     calculateTimeRequiredByRollerToTouchEachTrack(
-        ringsCount,
+        level.trackCount,
         rollerSourceX,
         rollerSourceY,
         rollerVelocity
@@ -183,7 +183,7 @@ fun BallsRevolving(
 }
 
 fun fireTheRoller(
-    ringsCount: Int,
+    trackCount: Int,
     angles: List<Animatable<Float, AnimationVector1D>>,
     rollerStopped: MutableState<Boolean>,
     gameState: MutableState<State>
@@ -191,7 +191,7 @@ fun fireTheRoller(
     // When Roller is triggered calculate the live timestamp when it will hit resp tracks
     // Then finally verify if ball is in or around(~120 ms) that timestamp
     val currentTime = System.currentTimeMillis()
-    var count = ringsCount - 1
+    var count = trackCount - 1
     while (count != -1) {
         val timeRequiredToTouchTrack = currentTime + timeRequiredList[count]
         val intersectTime = intersectTimestampList[count]
@@ -246,13 +246,13 @@ fun generateIntersectTimestampList(index: Int, angle: Float, animationDuration: 
  * It calculates the time required by roller to touch each track
  * */
 fun calculateTimeRequiredByRollerToTouchEachTrack(
-    ringsCount: Int,
+    trackCount: Int,
     rollerSourceX: Float,
     rollerSourceY: Float,
     rollerVelocity: Double
 ) {
     var count = 0
-    while (count != ringsCount) {
+    while (count != trackCount) {
         // gets the distance between roller start point and point of intersection with track
         val distance = getDistance(
             rollerSourceX, xIntersectList[count],
@@ -269,7 +269,7 @@ fun calculateTimeRequiredByRollerToTouchEachTrack(
  * */
 @Composable
 fun calculateIntersectionPointsOfRollerAndTracks(
-    ringsCount: Int,
+    trackCount: Int,
     angle: Float,
     revolvingBallsRadiusArray: List<Int>,
     screenCenterX: Int,
@@ -277,7 +277,7 @@ fun calculateIntersectionPointsOfRollerAndTracks(
     ballSizeInPx: Float
 ) {
     var count = 0
-    while (count != ringsCount) {
+    while (count != trackCount) {
         val radius = with(LocalDensity.current) { revolvingBallsRadiusArray[count].dp.toPx() }
         xIntersectList.add(
             screenCenterX + getXCoOrdFromAngle(
@@ -296,11 +296,11 @@ fun calculateIntersectionPointsOfRollerAndTracks(
 }
 
 @Composable
-fun getAnimationValue(ringsCount: Int): List<Animatable<Float, AnimationVector1D>> {
+fun getAnimationValue(level: Level): List<Animatable<Float, AnimationVector1D>> {
     var count = 0
     val list = ArrayList<Animatable<Float, AnimationVector1D>>()
-    while (count != ringsCount) {
-        list.add(remember { Animatable(initialValue = 0f) })
+    while (count != level.trackCount) {
+        list.add(remember { Animatable(initialValue = level.ballInitialAngle[count]) })
         count++
     }
     return list

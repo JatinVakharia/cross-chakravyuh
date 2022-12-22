@@ -1,5 +1,7 @@
 package com.cross.chakravyuh
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -19,17 +21,20 @@ private const val TAG = "MainActivity"
 enum class State { InProgress, Loss, Win }
 enum class Behaviour { None, Retry, NextLevel }
 
+lateinit var sharedPreferences: SharedPreferences
+val levelList = getLevelObjects()
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        sharedPreferences =  getSharedPreferences("Chakravyuh_Pref", Context.MODE_PRIVATE)
         setContent {
-            startGame(1)
+            startGame(levelList[sharedPreferences.getInt("user_level", 0)])
         }
     }
 
     @Composable
-    fun startGame(level: Int) {
+    fun startGame(level: Level) {
         Log.d(TAG, "Time1 : "+ System.currentTimeMillis())
         // Handles Win and Loss of game
         var gameState = remember { mutableStateOf(State.InProgress) }
@@ -42,7 +47,7 @@ class MainActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxSize()
             ) {
                 Log.d(TAG, "Time2 : "+ System.currentTimeMillis())
-                BallsRevolving(4, level, gameState)
+                BallsRevolving(level, gameState)
             }
         }
         observeGameState(gameState, gameBehaviour)
@@ -52,9 +57,9 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun observeGameBehaviour(gameBehaviour: MutableState<Behaviour>) {
         if (gameBehaviour.value == Behaviour.Retry) {
-            startGame(1)
+            startGame(levelList[sharedPreferences.getInt("user_level", 0)])
         } else if (gameBehaviour.value == Behaviour.NextLevel) {
-            startGame(1)
+            startGame(levelList[sharedPreferences.getInt("user_level", 0)])
         }
     }
 
@@ -93,6 +98,12 @@ class MainActivity : ComponentActivity() {
 
     private fun moveToNextLevel(gameBehaviour: MutableState<Behaviour>) {
         clearData()
+        // Increment level
+        val userLevel = sharedPreferences.getInt("user_level", 0)
+        if(userLevel < levelList.size - 1)
+            sharedPreferences.edit().putInt("user_level", userLevel + 1).apply()
+
+        // Move to next level
         gameBehaviour.value = Behaviour.NextLevel
     }
 
@@ -107,6 +118,6 @@ class MainActivity : ComponentActivity() {
 fun DefaultPreview() {
     CrossChakravyuhTheme {
         var gameState = remember { mutableStateOf(State.InProgress) }
-        BallsRevolving(4, 1, gameState)
+        BallsRevolving(levelList[sharedPreferences.getInt("user_level", 0)], gameState)
     }
 }
