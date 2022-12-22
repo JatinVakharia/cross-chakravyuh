@@ -15,23 +15,20 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.cross.chakravyuh.ui.theme.colorArray
-import com.cross.chakravyuh.ui.theme.revolvingBallsRadiusArray
-import com.cross.chakravyuh.ui.theme.trackDiameter
 
 @Composable
-fun drawTracks(index: Int, screenCenterX: Int, screenCenterY: Int) {
-    val trackDiameterInPx = with(LocalDensity.current) { trackDiameter[index].dp.toPx() }
+fun drawTracks(index: Int, screenCenterX: Int, screenCenterY: Int, level: Level) {
+    val trackDiameterInPx = with(LocalDensity.current) { level.trackDiameter[index].dp.toPx() }
     Surface(
         modifier = Modifier
-            .size(trackDiameter[index].dp)
+            .size(level.trackDiameter[index].dp)
             .graphicsLayer {
                 translationX = screenCenterX.toFloat() - (trackDiameterInPx / 2)
                 translationY = screenCenterY.toFloat() - (trackDiameterInPx / 2)
             },
         color = Color.Transparent,
         shape = CircleShape,
-        border = BorderStroke(width = trackWidth, color = Color.Gray)
+        border = BorderStroke(width = level.trackWidthInDp, color = Color.Gray)
     ) {}
 }
 
@@ -44,9 +41,9 @@ fun drawRevolvingBalls(
     ballSizeInPx: Float,
     level: Level
 ) {
-    val radius = with(LocalDensity.current) { revolvingBallsRadiusArray[index].dp.toPx() }
+    val radius = with(LocalDensity.current) { level.revolvingBallsRadiusArray[index].dp.toPx() }
     Box(modifier = Modifier
-        .size(ballSize)
+        .size(level.ballSizeInDp)
         .graphicsLayer {
             translationX = screenCenterX + getXCoOrdFromAngle(
                 angle.value,
@@ -56,10 +53,14 @@ fun drawRevolvingBalls(
                 angle.value,
                 radius
             ).toFloat() - (ballSizeInPx / 2)
-            generateIntersectTimestampList(index, angle.value, level.ballAnimationDuration[index])
+            generateIntersectTimestampList(
+                index,
+                angle.value,
+                level.ballAnimationDuration[index]
+            )
         }
         .background(
-            color = colorArray[index],
+            color = level.colorArray[index],
             shape = CircleShape
         )
     )
@@ -142,7 +143,7 @@ fun drawRoller(
                 }
                 translationX = previousX
                 translationY = previousY
-                if(previousX == destX && previousY == destY){
+                if (previousX == destX && previousY == destY) {
                     // You Win, as roller has reached destination without collision
                     stopAllAnimations(angles, rollerStopped, gameState, State.Win)
                 }

@@ -23,8 +23,6 @@ import kotlinx.coroutines.launch
 private const val TAG = "Balls Revolving"
 val srcDestRingStroke = 5.dp
 val srcDestRingSize = 35.dp
-val trackWidth = 10.dp
-val ballSize = 20.dp
 val rollerSize = 25.dp
 const val rollerAnimTime = 2000
 
@@ -84,7 +82,7 @@ fun BallsRevolving(
     val destY = screenCenterY
 
     val ringSizeInPx = with(density) { srcDestRingSize.toPx() }
-    val ballSizeInPx = with(density) { ballSize.toPx() }
+    val ballSizeInPx = with(density) { level.ballSizeInDp.toPx() }
     // Calculating roller source and destination
     val rollerSourceX = (sourceX - (ringSizeInPx / 2)) + with(density) { srcDestRingStroke.toPx() }
     val rollerSourceY = (sourceY - (ringSizeInPx / 2)) + with(density) { srcDestRingStroke.toPx() }
@@ -115,7 +113,7 @@ fun BallsRevolving(
     {
         angles.forEachIndexed { index, angle ->
             // Tracks
-            drawTracks(index = index, screenCenterX, screenCenterY)
+            drawTracks(index = index, screenCenterX, screenCenterY, level)
             // Revolving balls
             drawRevolvingBalls(index, angle, screenCenterX, screenCenterY, ballSizeInPx, level)
         }
@@ -163,7 +161,7 @@ fun BallsRevolving(
     calculateIntersectionPointsOfRollerAndTracks(
         level.trackCount,
         180f,
-        revolvingBallsRadiusArray,
+        level.revolvingBallsRadiusArray,
         screenCenterX,
         screenCenterY,
         ballSizeInPx
