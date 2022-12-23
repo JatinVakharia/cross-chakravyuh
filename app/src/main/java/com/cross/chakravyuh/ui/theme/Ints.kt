@@ -15,14 +15,14 @@ val trackDiameterFor4Tracks = listOf<Int>(
 )
 
 val revolvingBallsRadiusArrayFor8Tracks = listOf<Int>(
-    67,
-    82,
-    97,
-    112,
-    127,
-    142,
-    157,
-    172
+    68,
+    83,
+    98,
+    113,
+    128,
+    143,
+    158,
+    173
 )
 
 val trackDiameterFor8Tracks = listOf<Int>(
