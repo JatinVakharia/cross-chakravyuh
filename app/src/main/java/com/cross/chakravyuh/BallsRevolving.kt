@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import com.cross.chakravyuh.ui.theme.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -25,6 +24,8 @@ val srcDestRingStroke = 5.dp
 val srcDestRingSize = 35.dp
 val rollerSize = 25.dp
 const val rollerAnimTime = 2000
+const val angleMargin = 2f
+const val timeMargin = 50
 
 /** xIntersectList stores all x coordinates of intersection between roller and every track */
 lateinit var xIntersectList: ArrayList<Float>
@@ -156,9 +157,9 @@ fun BallsRevolving(
         }, (level.ballAnimationDuration.maxOrNull() ?: 0).toLong())
     }
 
-    // Get co-ordinates, where roller path and tracks intersect
+    // Get co-ordinates, where roller path and balls intersect
     // todo : angle should not be hard coded, need to calculate angle and save it in a list
-    calculateIntersectionPointsOfRollerAndTracks(
+    calculateIntersectionPointsOfRollerAndBalls(
         level.trackCount,
         180f,
         level.revolvingBallsRadiusArray,
@@ -172,7 +173,7 @@ fun BallsRevolving(
         getVelocity(rollerSourceX, rollerSourceY, rollerDestX, rollerDestY, rollerAnimTime)
 
     // calculate time taken by roller to touch each track
-    calculateTimeRequiredByRollerToTouchEachTrack(
+    calculateTimeRequiredByRollerToTouchEachBall(
         level.trackCount,
         rollerSourceX,
         rollerSourceY,
@@ -193,9 +194,10 @@ fun fireTheRoller(
     while (count != -1) {
         val timeRequiredToTouchTrack = currentTime + timeRequiredList[count]
         val intersectTime = intersectTimestampList[count]
+//        Log.d(TAG, "Count : $count")
 //        Log.d(TAG, "timeRequiredToTouchTrackt : $timeRequiredToTouchTrack")
 //        Log.d(TAG, "intersectTime : $intersectTime")
-        if (timeRequiredToTouchTrack in intersectTime - 120..intersectTime + 120) {
+        if (timeRequiredToTouchTrack in intersectTime - timeMargin..intersectTime + timeMargin) {
             Log.d(TAG, "Boom Boom : count : $count")
             Handler(Looper.getMainLooper()).postDelayed({
                 // Stop all balls and roller as there is a collision
@@ -232,18 +234,20 @@ fun generateIntersectTimestampList(index: Int, angle: Float, animationDuration: 
     // (where timestamp is the time, when ball will reach the intersect point in next cycle)
     if (xIntersectList.isNotEmpty()) {
         // todo : angle 180f should not be hard coded, need to fetch angle from the calculated angle list
-        if (angle in 180f - 1f..180f + 1f)
+        if (angle in 180f - angleMargin..180f + angleMargin) {
+//            Log.d(TAG, "Index = $index : angle = $angle")
             if (intersectTimestampList.size > index)
                 intersectTimestampList[index] = System.currentTimeMillis() + animationDuration
             else
                 intersectTimestampList.add(System.currentTimeMillis() + animationDuration)
+        }
     }
 }
 
 /**
- * It calculates the time required by roller to touch each track
+ * It calculates the time required by roller to touch each ball (when ball is at a particular angle)
  * */
-fun calculateTimeRequiredByRollerToTouchEachTrack(
+fun calculateTimeRequiredByRollerToTouchEachBall(
     trackCount: Int,
     rollerSourceX: Float,
     rollerSourceY: Float,
@@ -251,7 +255,8 @@ fun calculateTimeRequiredByRollerToTouchEachTrack(
 ) {
     var count = 0
     while (count != trackCount) {
-        // gets the distance between roller start point and point of intersection with track
+        // gets the distance between roller start point
+        // and point of intersection with ball (when ball is at a particular angle)
         val distance = getDistance(
             rollerSourceX, xIntersectList[count],
             rollerSourceY, yIntersectList[count]
@@ -263,10 +268,10 @@ fun calculateTimeRequiredByRollerToTouchEachTrack(
 }
 
 /**
- * It calculates the intersection points of roller and tracks
+ * It calculates the intersection points of roller and balls (when ball is at a particular angle)
  * */
 @Composable
-fun calculateIntersectionPointsOfRollerAndTracks(
+fun calculateIntersectionPointsOfRollerAndBalls(
     trackCount: Int,
     angle: Float,
     revolvingBallsRadiusArray: List<Int>,
