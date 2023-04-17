@@ -49,7 +49,7 @@ fun createDialog(
             ) {
 
                 //.......................................................................
-                Image(
+                /*Image(
                     painter = painterResource(id = if (gameState == State.Win) R.drawable.award else R.drawable.loose),
                     contentDescription = null, // decorative
                     contentScale = ContentScale.Fit,
@@ -58,9 +58,9 @@ fun createDialog(
                         .height(70.dp)
                         .fillMaxWidth(),
 
-                    )
+                    )*/
 
-                Column(modifier = Modifier.padding(16.dp)) {
+                /*Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = if (gameState == State.Win) "You Win" else "Wrong Judgement",
                         textAlign = TextAlign.Center,
@@ -79,7 +79,7 @@ fun createDialog(
                             .fillMaxWidth(),
                         style = MaterialTheme.typography.body2
                     )
-                }
+                }*/
                 //.......................................................................
                 Row(
                     Modifier

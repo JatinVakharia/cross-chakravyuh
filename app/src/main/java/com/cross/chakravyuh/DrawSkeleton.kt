@@ -56,7 +56,7 @@ fun drawRevolvingBalls(
             generateIntersectTimestampList(
                 index,
                 angle.value,
-                level.ballAnimationDuration[index]
+                level
             )
         }
         .background(
