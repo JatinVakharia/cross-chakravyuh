@@ -38,7 +38,7 @@ fun getLevelObjects(): List<Level> {
         Level(
             2, 2,
             listOf(0f, 360f), listOf(360f, 0f),
-            listOf(2400, 3000),
+            listOf(1800, 2400),
             true,
             10.dp, 20.dp,
             revolvingBallsRadiusArrayFor4Tracks, trackDiameterFor4Tracks,
@@ -51,7 +51,7 @@ fun getLevelObjects(): List<Level> {
             3, 2,
             listOf(0f, 360f), listOf(360f, 0f),
             listOf(1800, 2400),
-            true,
+            false,
             10.dp, 20.dp,
             revolvingBallsRadiusArrayFor4Tracks, trackDiameterFor4Tracks,
             colorArrayFor4Tracks
@@ -60,9 +60,9 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            4, 2,
-            listOf(0f, 360f), listOf(360f, 0f),
-            listOf(1800, 2100),
+            4, 3,
+            listOf(0f, 0f, 0f), listOf(360f, 360f, 360f),
+            listOf(1800, 2400, 3000),
             true,
             10.dp, 20.dp,
             revolvingBallsRadiusArrayFor4Tracks, trackDiameterFor4Tracks,
@@ -73,30 +73,6 @@ fun getLevelObjects(): List<Level> {
     levelList.add(
         Level(
             5, 3,
-            listOf(0f, 0f, 0f), listOf(360f, 360f, 360f),
-            listOf(2400, 3000, 3600),
-            true,
-            10.dp, 20.dp,
-            revolvingBallsRadiusArrayFor4Tracks, trackDiameterFor4Tracks,
-            colorArrayFor4Tracks
-        )
-    )
-
-    levelList.add(
-        Level(
-            6, 3,
-            listOf(0f, 360f, 0f), listOf(360f, 0f, 360f),
-            listOf(2400, 3000, 3600),
-            true,
-            10.dp, 20.dp,
-            revolvingBallsRadiusArrayFor4Tracks, trackDiameterFor4Tracks,
-            colorArrayFor4Tracks
-        )
-    )
-
-    levelList.add(
-        Level(
-            7, 3,
             listOf(0f, 360f, 0f), listOf(360f, 0f, 360f),
             listOf(1800, 2400, 3000),
             true,
@@ -108,10 +84,10 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            8, 3,
+            6, 3,
             listOf(0f, 360f, 0f), listOf(360f, 0f, 360f),
-            listOf(1800, 2100, 2400),
-            true,
+            listOf(1800, 2400, 3000),
+            false,
             10.dp, 20.dp,
             revolvingBallsRadiusArrayFor4Tracks, trackDiameterFor4Tracks,
             colorArrayFor4Tracks
@@ -120,9 +96,9 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            9, 4,
+            7, 4,
             listOf(0f, 0f, 0f, 0f), listOf(360f, 360f, 360f, 360f),
-            listOf(2400, 3000, 3600, 4200),
+            listOf(1800, 2400, 3000, 3600),
             true,
             10.dp, 20.dp,
             revolvingBallsRadiusArrayFor4Tracks, trackDiameterFor4Tracks,
@@ -132,19 +108,7 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            10, 4,
-            listOf(0f, 360f, 0f, 360f), listOf(360f, 0f, 360f, 0f),
-            listOf(2400, 3000, 3600, 4200),
-            true,
-            10.dp, 20.dp,
-            revolvingBallsRadiusArrayFor4Tracks, trackDiameterFor4Tracks,
-            colorArrayFor4Tracks
-        )
-    )
-
-    levelList.add(
-        Level(
-            11, 4,
+            8, 4,
             listOf(0f, 360f, 0f, 360f), listOf(360f, 0f, 360f, 0f),
             listOf(1800, 2400, 3000, 3600),
             true,
@@ -156,10 +120,10 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            12, 4,
+            9, 4,
             listOf(0f, 360f, 0f, 360f), listOf(360f, 0f, 360f, 0f),
-            listOf(1800, 2100, 2400, 2700),
-            true,
+            listOf(1800, 2400, 3000, 3600),
+            false,
             10.dp, 20.dp,
             revolvingBallsRadiusArrayFor4Tracks, trackDiameterFor4Tracks,
             colorArrayFor4Tracks
@@ -168,7 +132,7 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            13, 5,
+            10, 5,
             listOf(0f, 0f, 0f, 0f, 0f), listOf(360f, 360f, 360f, 360f, 360f),
             listOf(2100, 2400, 2700, 3000, 3300),
             true,
@@ -180,7 +144,7 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            14, 5,
+            11, 5,
             listOf(0f, 360f, 0f, 360f, 0f), listOf(360f, 0f, 360f, 0f, 360f),
             listOf(2100, 2400, 2700, 3000, 3300),
             true,
@@ -192,10 +156,10 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            15, 5,
+            12, 5,
             listOf(0f, 360f, 0f, 360f, 0f), listOf(360f, 0f, 360f, 0f, 360f),
             listOf(1800, 2100, 2400, 2700, 3000),
-            true,
+            false,
             3.dp, 12.dp,
             revolvingBallsRadiusArrayFor8Tracks, trackDiameterFor8Tracks,
             colorArrayFor8Tracks
@@ -204,7 +168,7 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            16, 6,
+            13, 6,
             listOf(0f, 0f, 0f, 0f, 0f, 0f), listOf(360f, 360f, 360f, 360f, 360f, 360f),
             listOf(2100, 2400, 2700, 3000, 3300, 3600),
             true,
@@ -216,7 +180,7 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            17, 6,
+            14, 6,
             listOf(0f, 360f, 0f, 360f, 0f, 360f), listOf(360f, 0f, 360f, 0f, 360f, 0f),
             listOf(2100, 2400, 2700, 3000, 3300, 3600),
             true,
@@ -228,10 +192,10 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            18, 6,
+            15, 6,
             listOf(0f, 360f, 0f, 360f, 0f, 360f), listOf(360f, 0f, 360f, 0f, 360f, 0f),
             listOf(1800, 2100, 2400, 2700, 3000, 3300),
-            true,
+            false,
             3.dp, 12.dp,
             revolvingBallsRadiusArrayFor8Tracks, trackDiameterFor8Tracks,
             colorArrayFor8Tracks
@@ -240,7 +204,7 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            19, 7,
+            16, 7,
             listOf(0f, 0f, 0f, 0f, 0f, 0f, 0f), listOf(360f, 360f, 360f, 360f, 360f, 360f, 360f),
             listOf(2100, 2400, 2700, 3000, 3300, 3600, 3900),
             true,
@@ -252,7 +216,7 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            20, 7,
+            17, 7,
             listOf(0f, 360f, 0f, 360f, 0f, 360f, 0f), listOf(360f, 0f, 360f, 0f, 360f, 0f, 360f),
             listOf(2100, 2400, 2700, 3000, 3300, 3600, 3900),
             true,
@@ -264,10 +228,10 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            21, 7,
+            18, 7,
             listOf(0f, 360f, 0f, 360f, 0f, 360f, 0f), listOf(360f, 0f, 360f, 0f, 360f, 0f, 360f),
             listOf(1800, 2100, 2400, 2700, 3000, 3300, 3600),
-            true,
+            false,
             3.dp, 12.dp,
             revolvingBallsRadiusArrayFor8Tracks, trackDiameterFor8Tracks,
             colorArrayFor8Tracks
@@ -276,7 +240,7 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            22,
+            19,
             8,
             listOf(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f),
             listOf(360f, 360f, 360f, 360f, 360f, 360f, 360f, 360f),
@@ -292,7 +256,7 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            23,
+            20,
             8,
             listOf(0f, 360f, 0f, 360f, 0f, 360f, 0f, 360f),
             listOf(360f, 0f, 360f, 0f, 360f, 0f, 360f, 0f),
@@ -308,23 +272,7 @@ fun getLevelObjects(): List<Level> {
 
     levelList.add(
         Level(
-            24,
-            8,
-            listOf(0f, 360f, 0f, 360f, 0f, 360f, 0f, 360f),
-            listOf(360f, 0f, 360f, 0f, 360f, 0f, 360f, 0f),
-            listOf(1800, 2100, 2400, 2700, 3000, 3200, 3400, 3600),
-            true,
-            3.dp,
-            12.dp,
-            revolvingBallsRadiusArrayFor8Tracks,
-            trackDiameterFor8Tracks,
-            colorArrayFor8Tracks
-        )
-    )
-
-    levelList.add(
-        Level(
-            25,
+            21,
             8,
             listOf(0f, 360f, 0f, 360f, 0f, 360f, 0f, 360f),
             listOf(360f, 0f, 360f, 0f, 360f, 0f, 360f, 0f),
