@@ -1,6 +1,9 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+    id 'com.google.firebase.firebase-perf'
 }
 
 android {
@@ -47,6 +50,12 @@ android {
 }
 
 dependencies {
+
+    // Import the Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:31.5.0')
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-perf-ktx'
 
     implementation 'androidx.core:core-ktx:1.10.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'

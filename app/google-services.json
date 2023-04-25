@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1020318012893",
+    "project_id": "crosschakra",
+    "storage_bucket": "crosschakra.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020318012893:android:41762e7d3fdf9095469234",
+        "android_client_info": {
+          "package_name": "com.cross.chakravyuh"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1020318012893-0ilfancst65clmtqvkhljpi9ql3ptt9b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASMcs0IhZz_WMZWE59R4-TAWVpwimu_cU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1020318012893-0ilfancst65clmtqvkhljpi9ql3ptt9b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
