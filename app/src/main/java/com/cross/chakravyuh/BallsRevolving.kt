@@ -24,7 +24,7 @@ val srcDestRingStroke = 5.dp
 val srcDestRingSize = 35.dp
 val rollerSize = 25.dp
 var rollerAnimTime = 2000
-const val timeMargin = 50
+const val timeMargin = 0
 
 /** xIntersectList stores all x coordinates of intersection between roller and every track */
 lateinit var xIntersectList: ArrayList<Float>
@@ -40,7 +40,9 @@ lateinit var timeRequiredList: ArrayList<Long>
 lateinit var intersect180TimestampList: ArrayList<LongArray>
 lateinit var intersect360TimestampList: ArrayList<LongArray>
 
-lateinit var angleMarginOfTrack: ArrayList<Float>
+lateinit var angleCoveredOfTrackByRoller: ArrayList<Float>
+
+var rollerTimeToCrossTrack: Long = 0
 
 fun initiateData(trackCount: Int) {
     // a condition to protect from reinitialization of variable
@@ -50,7 +52,7 @@ fun initiateData(trackCount: Int) {
         timeRequiredList = ArrayList(trackCount)
         intersect180TimestampList = ArrayList(trackCount)
         intersect360TimestampList = ArrayList(trackCount)
-        angleMarginOfTrack = ArrayList(trackCount)
+        angleCoveredOfTrackByRoller = ArrayList(trackCount)
     }
 }
 
@@ -60,7 +62,7 @@ fun clearData() {
     timeRequiredList.clear()
     intersect180TimestampList.clear()
     intersect360TimestampList.clear()
-    angleMarginOfTrack.clear()
+    angleCoveredOfTrackByRoller.clear()
 }
 
 @Composable
@@ -94,8 +96,8 @@ fun BallsRevolving(
     val ringSizeInPx = with(density) { srcDestRingSize.toPx() }
     val ballSizeInPx = with(density) { level.ballSizeInDp.toPx() }
     val rollerSizeInPx = with(density) { rollerSize.toPx() }
-    if(angleMarginOfTrack.isEmpty())
-        calculateAngleMarginOfEveryTrack(rollerSizeInPx, level.trackDiameter, level.trackCount)
+    val trackWidthInPx = with(density) { level.trackWidthInDp.toPx() }
+
     // Calculating roller source and destination
     val rollerSourceX = (sourceX - (ringSizeInPx / 2)) + with(density) { srcDestRingStroke.toPx() }
     val rollerSourceY = (sourceY - (ringSizeInPx / 2)) + with(density) { srcDestRingStroke.toPx() }
@@ -104,10 +106,19 @@ fun BallsRevolving(
     val rollerDestY =
         (destY - (ringSizeInPx / 2)) + with(density) { srcDestRingStroke.toPx() }
 
+    // Roller animation variables
     var rollerStarted by remember { mutableStateOf(false) }
     val rollerStopped = remember { mutableStateOf(false) }
 
-    // Get balls animation values
+    // Calculate the angle covered by roller for each track while rolling in angle
+    if (angleCoveredOfTrackByRoller.isEmpty())
+        calculateAngleCoveredForEachTrackByRoller(
+            rollerSizeInPx,
+            level.trackDiameter,
+            level.trackCount
+        )
+
+    // Balls animation values
     val angles = getAnimationValue(level)
     angles.forEachIndexed { index, angle ->
         LaunchedEffect(key1 = angle) {
@@ -171,8 +182,8 @@ fun BallsRevolving(
         }, (level.ballAnimationDuration.maxOrNull() ?: 0).toLong())
     }
 
-    // Get co-ordinates, where roller path and balls intersect
-    calculateIntersectionPointsOfRollerAndBalls(
+    // Get co-ordinates, where roller path and track intersect for angle 180
+    calculateIntersectionPointsOfRollerAndTracks(
         level.trackCount,
         180f,
         level.revolvingBallsRadiusArray,
@@ -180,11 +191,11 @@ fun BallsRevolving(
         screenCenterY,
         ballSizeInPx
     )
-    // calculate intersection points for the angle of 360
+    // calculate intersection points for the angle of 360 / 0
     if (!level.crossHalf)
-        calculateIntersectionPointsOfRollerAndBalls(
+        calculateIntersectionPointsOfRollerAndTracks(
             level.trackCount,
-            360f,
+            0f,
             level.revolvingBallsRadiusArray,
             screenCenterX,
             screenCenterY,
@@ -195,8 +206,11 @@ fun BallsRevolving(
     val rollerVelocity =
         getVelocity(rollerSourceX, rollerSourceY, rollerDestX, rollerDestY, rollerAnimTime)
 
+    // Time taken by roller to cross track, it will be the constant time for each track
+    rollerTimeToCrossTrack = ((trackWidthInPx + rollerSizeInPx) / rollerVelocity).toLong()
+
     // calculate time taken by roller to touch each track
-    calculateTimeRequiredByRollerToTouchEachBall(
+    calculateTimeRequiredByRollerToTouchEachTrack(
         rollerSourceX,
         rollerSourceY,
         rollerVelocity,
@@ -204,11 +218,12 @@ fun BallsRevolving(
     )
 }
 
-/** Angle Margin for every track is different, which varies with diameter of track
- * Which means calculate the track area covered by roller while rolling in angle (some part from 360)
+/**
+ * Angle covered by roller for every track is different, which varies with diameter of track.
+ * Which means calculate the track area covered by roller while rolling in angle (not in length or pixel)
  * */
 @Composable
-fun calculateAngleMarginOfEveryTrack(
+fun calculateAngleCoveredForEachTrackByRoller(
     rollerSizeInPx: Float,
     trackDiameter: List<Int>,
     trackCount: Int
@@ -217,9 +232,11 @@ fun calculateAngleMarginOfEveryTrack(
     while (count != trackCount) {
         val trackDiameterInPx = with(LocalDensity.current) { trackDiameter[count].dp.toPx() }
         // Using formula arcMeasure  = (arcLength / radius) (180 / pi)
+        // Here angle 180 is kept constant, as our target is at 180 or 360.
+        // For 360, we just reverse the existing list
         val angleMargin = (rollerSizeInPx / (trackDiameterInPx / 2)) * (180 / Math.PI.toFloat())
         Log.d(TAG, "Count = $count :: angleMargin = $angleMargin")
-        angleMarginOfTrack.add(angleMargin)
+        angleCoveredOfTrackByRoller.add(angleMargin)
         count++
     }
 }
@@ -231,15 +248,20 @@ fun fireTheRoller(
     gameState: MutableState<State>
 ) {
     // When Roller is triggered calculate the live timestamp when it will hit resp tracks
-    // Then finally verify if ball is in or around(~120 ms) that timestamp
+    // Then finally verify if ball is in or around roller path at that timestamp
+    // No time margin considered, changed it to 0
     val currentTime = System.currentTimeMillis()
     var isCollide = false
     // traverse reverse because last track would collide first to roller (For first half of the tracks)
     for (index in intersect180TimestampList.lastIndex downTo 0) {
-        val timeRequiredToTouchTrack = currentTime + timeRequiredList[index]
+        val timeWhenRollerTouchTrack = currentTime + timeRequiredList[index]
+        val timeWhenRollerLeavesTrack = timeWhenRollerTouchTrack + rollerTimeToCrossTrack
         val intersectTime = intersect180TimestampList[index]
         Log.d(TAG, "Count : $index")
-        Log.d(TAG, "timeRequiredToTouchTrackt : $timeRequiredToTouchTrack")
+        Log.d(TAG, "rollerTimeToCrossTrack : $rollerTimeToCrossTrack")
+        Log.d(TAG, "timeRequiredList[index] : " + timeRequiredList[index])
+        Log.d(TAG, "timeWhenRollerTouchTrack : $timeWhenRollerTouchTrack")
+        Log.d(TAG, "timeWhenRollerLeavesTrac : $timeWhenRollerLeavesTrack")
         Log.d(
             TAG,
             "intersectTime Range : " + (intersectTime[0] - timeMargin) + " - " + (intersectTime[1] + timeMargin)
@@ -248,7 +270,9 @@ fun fireTheRoller(
             TAG,
             "Margin : " + ((intersectTime[0] - timeMargin) - (intersectTime[1] + timeMargin))
         )
-        if (timeRequiredToTouchTrack in intersectTime[0] - timeMargin..intersectTime[1] + timeMargin) {
+        if (timeWhenRollerTouchTrack in intersectTime[0] - timeMargin..intersectTime[1] + timeMargin ||
+            timeWhenRollerLeavesTrack in intersectTime[0] - timeMargin..intersectTime[1] + timeMargin
+        ) {
             Log.d(TAG, "Boom Boom : count : $index")
             isCollide = true
             Handler(Looper.getMainLooper()).postDelayed({
@@ -261,11 +285,13 @@ fun fireTheRoller(
 
     // traverse forward because first track would collide first to roller (For second half of the tracks)
     if (!isCollide)
-        for (index in 0 until intersect360TimestampList.lastIndex) {
-            val timeRequiredToTouchTrack = currentTime + timeRequiredList[trackCount + index]
+        for (index in 0.rangeTo(intersect360TimestampList.lastIndex)) {
+            val timeWhenRollerTouchTrack = currentTime + timeRequiredList[trackCount + index]
+            val timeWhenRollerLeavesTrack = timeWhenRollerTouchTrack + rollerTimeToCrossTrack
             val intersectTime = intersect360TimestampList[index]
             Log.d(TAG, "360 Count : $index")
-            Log.d(TAG, "360 timeRequiredToTouchTrackt : $timeRequiredToTouchTrack")
+            Log.d(TAG, "360 timeWhenRollerTouchTrack : $timeWhenRollerTouchTrack")
+            Log.d(TAG, "360 timeWhenRollerLeavesTrack : $timeWhenRollerLeavesTrack")
             Log.d(
                 TAG,
                 "360 intersectTime Range : " + (intersectTime[0] - timeMargin) + " - " + (intersectTime[1] + timeMargin)
@@ -274,7 +300,9 @@ fun fireTheRoller(
                 TAG,
                 "360 Margin : " + ((intersectTime[0] - timeMargin) - (intersectTime[1] + timeMargin))
             )
-            if (timeRequiredToTouchTrack in intersectTime[0] - timeMargin..intersectTime[1] + timeMargin) {
+            if (timeWhenRollerTouchTrack in intersectTime[0] - timeMargin..intersectTime[1] + timeMargin ||
+                timeWhenRollerLeavesTrack in intersectTime[0] - timeMargin..intersectTime[1] + timeMargin
+            ) {
                 Log.d(TAG, "360 Boom Boom : count : $index")
                 Handler(Looper.getMainLooper()).postDelayed({
                     // Stop all balls and roller as there is a collision
@@ -304,11 +332,13 @@ fun stopAllAnimations(
 /**
  * It generates list of timestamps, when resp ball will reach desired angle in next cycle
  * */
+
+// Todo Jatin : This calculations seems to be wrong..... need to consider ball speed
 fun generateIntersectTimestampList(index: Int, angle: Float, level: Level) {
     // Identify time, when ball will reach intersect points of track
     // If intersect points are updated then maintain a list of timestamp
     // (where timestamp is the time, when ball will reach the intersect point in next cycle)
-    val angleMargin = angleMarginOfTrack[index] / 2
+    val angleMargin = angleCoveredOfTrackByRoller[index] / 2
     if (xIntersectList.isNotEmpty() && angle in (180f - angleMargin)..(180f + angleMargin)) {
         val intersectTime = System.currentTimeMillis() + level.ballAnimationDuration[index]
         if (intersect180TimestampList.size > index) {
@@ -353,9 +383,9 @@ fun generateIntersectTimestampList(index: Int, angle: Float, level: Level) {
 }
 
 /**
- * It calculates the time required by roller to touch each ball (when ball is at a particular angle)
+ * It calculates the time required by roller to touch each track/ball (when ball is at a particular angle 180/360)
  * */
-fun calculateTimeRequiredByRollerToTouchEachBall(
+fun calculateTimeRequiredByRollerToTouchEachTrack(
     rollerSourceX: Float,
     rollerSourceY: Float,
     rollerVelocity: Double,
@@ -374,10 +404,10 @@ fun calculateTimeRequiredByRollerToTouchEachBall(
 }
 
 /**
- * It calculates the intersection points of roller and balls (when ball is at a particular angle)
+ * It calculates the intersection points of roller and tracks (when ball is at a particular angle)
  * */
 @Composable
-fun calculateIntersectionPointsOfRollerAndBalls(
+fun calculateIntersectionPointsOfRollerAndTracks(
     trackCount: Int,
     angle: Float,
     revolvingBallsRadiusArray: List<Int>,
