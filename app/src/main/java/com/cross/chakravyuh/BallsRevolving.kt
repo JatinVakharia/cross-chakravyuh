@@ -24,7 +24,6 @@ val srcDestRingStroke = 5.dp
 val srcDestRingSize = 35.dp
 val rollerSize = 25.dp
 var rollerAnimTime = 2000
-const val timeMargin = 0
 
 /** xIntersectList stores all x coordinates of intersection between roller and every track */
 lateinit var xIntersectList: ArrayList<Float>
@@ -110,7 +109,7 @@ fun BallsRevolving(
     var rollerStarted by remember { mutableStateOf(false) }
     val rollerStopped = remember { mutableStateOf(false) }
 
-    // Calculate the angle covered by roller for each track while rolling in angle
+    // Calculate the angle covered by roller on each track while rolling
     if (angleCoveredOfTrackByRoller.isEmpty())
         calculateAngleCoveredForEachTrackByRoller(
             rollerSizeInPx,
@@ -160,6 +159,7 @@ fun BallsRevolving(
             angles
         )
 
+        // todo on button click, all balls are flickered for some ms
         var buttonEnabled by remember { mutableStateOf(false) }
         Button(modifier = Modifier
             .align(Alignment.BottomCenter),
@@ -188,8 +188,7 @@ fun BallsRevolving(
         180f,
         level.revolvingBallsRadiusArray,
         screenCenterX,
-        screenCenterY,
-        ballSizeInPx
+        screenCenterY
     )
     // calculate intersection points for the angle of 360 / 0
     if (!level.crossHalf)
@@ -198,8 +197,7 @@ fun BallsRevolving(
             0f,
             level.revolvingBallsRadiusArray,
             screenCenterX,
-            screenCenterY,
-            ballSizeInPx
+            screenCenterY
         )
 
     // calculate velocity of roller
@@ -249,7 +247,6 @@ fun fireTheRoller(
 ) {
     // When Roller is triggered calculate the live timestamp when it will hit resp tracks
     // Then finally verify if ball is in or around roller path at that timestamp
-    // No time margin considered, changed it to 0
     val currentTime = System.currentTimeMillis()
     var isCollide = false
     // traverse reverse because last track would collide first to roller (For first half of the tracks)
@@ -257,28 +254,28 @@ fun fireTheRoller(
         val timeWhenRollerTouchTrack = currentTime + timeRequiredList[index]
         val timeWhenRollerLeavesTrack = timeWhenRollerTouchTrack + rollerTimeToCrossTrack
         val intersectTime = intersect180TimestampList[index]
+
         Log.d(TAG, "Count : $index")
         Log.d(TAG, "rollerTimeToCrossTrack : $rollerTimeToCrossTrack")
         Log.d(TAG, "timeRequiredList[index] : " + timeRequiredList[index])
         Log.d(TAG, "timeWhenRollerTouchTrack : $timeWhenRollerTouchTrack")
         Log.d(TAG, "timeWhenRollerLeavesTrac : $timeWhenRollerLeavesTrack")
-        Log.d(
-            TAG,
-            "intersectTime Range : " + (intersectTime[0] - timeMargin) + " - " + (intersectTime[1] + timeMargin)
-        )
-        Log.d(
-            TAG,
-            "Margin : " + ((intersectTime[0] - timeMargin) - (intersectTime[1] + timeMargin))
-        )
-        if (timeWhenRollerTouchTrack in intersectTime[0] - timeMargin..intersectTime[1] + timeMargin ||
-            timeWhenRollerLeavesTrack in intersectTime[0] - timeMargin..intersectTime[1] + timeMargin
-        ) {
-            Log.d(TAG, "Boom Boom : count : $index")
+        Log.d(TAG, "intersectTime Range : " + intersectTime[0] + " - " + intersectTime[1])
+        Log.d(TAG, "Margin : " + (intersectTime[0] - intersectTime[1]))
+
+        // Find the overlapping time range of roller and ball over that particular track
+        // If there is overlap, stop all the balls and roller on the first element of overlap
+        val rollerRange = timeWhenRollerTouchTrack..timeWhenRollerLeavesTrack
+        val ballRange = intersectTime[0]..intersectTime[1]
+        val overlapList = rollerRange.intersect(ballRange)
+        if (overlapList.isNotEmpty()) {
             isCollide = true
+            var time: Long = overlapList.first() - currentTime
+            Log.d(TAG, "Boom Boom : count : $index")
             Handler(Looper.getMainLooper()).postDelayed({
                 // Stop all balls and roller as there is a collision
                 stopAllAnimations(angles, rollerStopped, gameState, State.Loss)
-            }, timeRequiredList[index])
+            }, time)
             break
         }
     }
@@ -289,29 +286,28 @@ fun fireTheRoller(
             val timeWhenRollerTouchTrack = currentTime + timeRequiredList[trackCount + index]
             val timeWhenRollerLeavesTrack = timeWhenRollerTouchTrack + rollerTimeToCrossTrack
             val intersectTime = intersect360TimestampList[index]
+
             Log.d(TAG, "360 Count : $index")
             Log.d(TAG, "360 timeWhenRollerTouchTrack : $timeWhenRollerTouchTrack")
-            Log.d(TAG, "360 timeWhenRollerLeavesTrack : $timeWhenRollerLeavesTrack")
-            Log.d(
-                TAG,
-                "360 intersectTime Range : " + (intersectTime[0] - timeMargin) + " - " + (intersectTime[1] + timeMargin)
-            )
-            Log.d(
-                TAG,
-                "360 Margin : " + ((intersectTime[0] - timeMargin) - (intersectTime[1] + timeMargin))
-            )
-            if (timeWhenRollerTouchTrack in intersectTime[0] - timeMargin..intersectTime[1] + timeMargin ||
-                timeWhenRollerLeavesTrack in intersectTime[0] - timeMargin..intersectTime[1] + timeMargin
-            ) {
+            Log.d(TAG, "360 timeWhenRollerLeavesTrac : $timeWhenRollerLeavesTrack")
+            Log.d(TAG, "360 intersectTime Range : " + intersectTime[0] + " - " + intersectTime[1])
+            Log.d(TAG, "360 Margin : " + (intersectTime[0] - intersectTime[1]))
+
+            // Find the overlapping time range of roller and ball over that particular track
+            // If there is overlap, stop all the balls and roller on the first element of overlap
+            val rollerRange = timeWhenRollerTouchTrack..timeWhenRollerLeavesTrack
+            val ballRange = intersectTime[0]..intersectTime[1]
+            val overlapList = rollerRange.intersect(ballRange)
+            if (overlapList.isNotEmpty()) {
+                var time: Long = overlapList.first() - currentTime
                 Log.d(TAG, "360 Boom Boom : count : $index")
                 Handler(Looper.getMainLooper()).postDelayed({
                     // Stop all balls and roller as there is a collision
                     stopAllAnimations(angles, rollerStopped, gameState, State.Loss)
-                }, timeRequiredList[trackCount + index])
+                }, time)
                 break
             }
         }
-
 }
 
 /** Stop all balls and roller as there is a collision*/
@@ -333,7 +329,8 @@ fun stopAllAnimations(
  * It generates list of timestamps, when resp ball will reach desired angle in next cycle
  * */
 
-// Todo Jatin : This calculations seems to be wrong..... need to consider ball speed
+// Todo Jatin : This calculations seems to be wrong, sometimes timestamp values are wrong
+//  ..... need to consider ball speed??
 fun generateIntersectTimestampList(index: Int, angle: Float, level: Level) {
     // Identify time, when ball will reach intersect points of track
     // If intersect points are updated then maintain a list of timestamp
@@ -345,12 +342,10 @@ fun generateIntersectTimestampList(index: Int, angle: Float, level: Level) {
             val prevList = intersect180TimestampList[index]
             if (intersectTime - prevList[0] > 1000) {
                 // minimum timestamp
-//                Log.d(TAG, "Mini : "+intersectTime)
                 prevList[0] = intersectTime
             } else {
 //            } else if (intersectTime > prevList[1]) {
                 // maximum timestamp
-//                Log.d(TAG, "Max : "+intersectTime)
                 prevList[1] = intersectTime
             }
             intersect180TimestampList[index] = prevList
@@ -367,12 +362,10 @@ fun generateIntersectTimestampList(index: Int, angle: Float, level: Level) {
             val prevList = intersect360TimestampList[index]
             if (intersectTime - prevList[0] > 1000) {
                 // minimum timestamp
-//                Log.d(TAG, "Mini : "+intersectTime)
                 prevList[0] = intersectTime
             } else {
 //            } else if (intersectTime > prevList[1]) {
                 // maximum timestamp
-//                Log.d(TAG, "Max : "+intersectTime)
                 prevList[1] = intersectTime
             }
             intersect360TimestampList[index] = prevList
@@ -412,8 +405,7 @@ fun calculateIntersectionPointsOfRollerAndTracks(
     angle: Float,
     revolvingBallsRadiusArray: List<Int>,
     screenCenterX: Int,
-    screenCenterY: Int,
-    ballSizeInPx: Float
+    screenCenterY: Int
 ) {
     var count = 0
     while (count != trackCount) {
@@ -422,13 +414,13 @@ fun calculateIntersectionPointsOfRollerAndTracks(
             screenCenterX + getXCoOrdFromAngle(
                 angle,
                 radius
-            ).toFloat() - (ballSizeInPx / 2)
+            ).toFloat()
         )
         yIntersectList.add(
             screenCenterY + getYCoOrdFromAngle(
                 angle,
                 radius
-            ).toFloat() - (ballSizeInPx / 2)
+            ).toFloat()
         )
         count++
     }
