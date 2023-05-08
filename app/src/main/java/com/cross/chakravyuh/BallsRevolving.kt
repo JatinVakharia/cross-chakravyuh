@@ -106,7 +106,7 @@ fun BallsRevolving(
         (destY - (ringSizeInPx / 2)) + with(density) { srcDestRingStroke.toPx() }
 
     // Roller animation variables
-    var rollerStarted by remember { mutableStateOf(false) }
+    val rollerStarted = remember { mutableStateOf(false) }
     val rollerStopped = remember { mutableStateOf(false) }
 
     // Calculate the angle covered by roller on each track while rolling
@@ -159,27 +159,11 @@ fun BallsRevolving(
             angles
         )
 
-        // todo on button click, all balls are flickered for some ms
-        var buttonEnabled by remember { mutableStateOf(false) }
-        Button(modifier = Modifier
-            .align(Alignment.BottomCenter),
-            enabled = buttonEnabled,
-            onClick = {
-                // todo disable button after click, (making buttonEnabled = false, is changing roller position)
-//                buttonEnabled = false
-                // To calculate if roller touches the revolving balls, if true, stop roller and balls
-                fireTheRoller(level.trackCount, angles, rollerStopped, gameState)
-                // To start the roller from source to dest
-                rollerStarted = true
-            })
-        {
-            Text(text = "Start")
-        }
-
-        // Enable start button after one revolution of ball (ball which has longest revolution time)
-        Handler(Looper.getMainLooper()).postDelayed({
-            buttonEnabled = true
-        }, (level.ballAnimationDuration.maxOrNull() ?: 0).toLong())
+        drawStartButton(level = level,
+            rollerStarted,
+            rollerStopped,
+            gameState,
+            angles)
     }
 
     // Get co-ordinates, where roller path and track intersect for angle 180
@@ -242,9 +226,12 @@ fun calculateAngleCoveredForEachTrackByRoller(
 fun fireTheRoller(
     trackCount: Int,
     angles: List<Animatable<Float, AnimationVector1D>>,
+    rollerStarted: MutableState<Boolean>,
     rollerStopped: MutableState<Boolean>,
     gameState: MutableState<State>
 ) {
+    // To start the roller from source to dest
+    rollerStarted.value = true
     // When Roller is triggered calculate the live timestamp when it will hit resp tracks
     // Then finally verify if ball is in or around roller path at that timestamp
     val currentTime = System.currentTimeMillis()

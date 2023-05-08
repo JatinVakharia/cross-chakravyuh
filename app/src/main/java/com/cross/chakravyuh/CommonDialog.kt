@@ -32,7 +32,7 @@ fun createDialog(
     actionFunction: () -> Unit,
     exitFunction: () -> Unit
 ) {
-    Dialog(onDismissRequest = { openDialogCustom.value = false }) {
+    Dialog(onDismissRequest = { }) {
         val dialogWindowProvider = LocalView.current.parent as DialogWindowProvider
         dialogWindowProvider.window.setGravity(Gravity.BOTTOM)
 

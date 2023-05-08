@@ -1,14 +1,17 @@
 package com.cross.chakravyuh
 
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Button
 import androidx.compose.material.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.material.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -114,7 +117,7 @@ fun drawRoller(
     rollerSourceY: Float,
     destX: Float,
     destY: Float,
-    rollerStarted: Boolean,
+    rollerStarted: MutableState<Boolean>,
     rollerStopped: MutableState<Boolean>,
     gameState: MutableState<State>,
     angles: List<Animatable<Float, AnimationVector1D>>
@@ -124,12 +127,12 @@ fun drawRoller(
     var previousY = 0f
 
     val xValue = animateFloatAsState(
-        targetValue = if (rollerStarted) destX else rollerSourceX,
+        targetValue = if (rollerStarted.value) destX else rollerSourceX,
         animationSpec = tween(rollerAnimTime, 0, LinearEasing)
     )
 
     val yValue = animateFloatAsState(
-        targetValue = if (rollerStarted) destY else rollerSourceY,
+        targetValue = if (rollerStarted.value) destY else rollerSourceY,
         animationSpec = tween(rollerAnimTime, 0, LinearEasing)
     )
 
@@ -153,4 +156,42 @@ fun drawRoller(
                 shape = CircleShape
             )
     )
+}
+
+@Composable
+fun drawStartButton(
+    level: Level,
+    rollerStarted: MutableState<Boolean>,
+    rollerStopped: MutableState<Boolean>,
+    gameState: MutableState<State>,
+    angles: List<Animatable<Float, AnimationVector1D>>
+){
+    var buttonEnabled = remember { mutableStateOf(false) }
+    var firstRoundCompleted = remember { mutableStateOf(false) }
+    Column(verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(all = 8.dp)) {
+        Button(
+            enabled = buttonEnabled.value,
+            onClick = {
+                // disable button after click
+                buttonEnabled.value = false
+                // To calculate if roller touches the revolving balls, if true, stop roller and balls
+                fireTheRoller(level.trackCount, angles, rollerStarted, rollerStopped, gameState)
+            })
+        {
+            Text(text = "Start")
+        }
+    }
+
+    // Condition to execute handler only once
+    if(!firstRoundCompleted.value) {
+        // Enable start button after one revolution of ball (ball which has longest revolution time)
+        Handler(Looper.getMainLooper()).postDelayed({
+            buttonEnabled.value = true
+            firstRoundCompleted.value = true
+        }, (level.ballAnimationDuration.maxOrNull() ?: 0).toLong())
+    }
 }
